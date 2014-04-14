@@ -18,7 +18,11 @@ gulp.task('haml', function () {
   .pipe(gulp.dest('./public/'));
 });
 
-gulp.task('server', ['coffee', 'haml', 'watch'], function () {
+gulp.task('copy', function(){
+  gulp.src('./examples/images/*').pipe(gulp.dest('./public/images/'));
+});
+
+gulp.task('server', ['coffee', 'haml', 'copy', 'watch'], function () {
   var app = express();
   var port = 9001;
   var server = app.listen(port);
