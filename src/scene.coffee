@@ -1,18 +1,20 @@
 Physijs.scripts.worker = '../bower_components/physijs/physijs_worker.js'
 Physijs.scripts.ammo = '../ammo.js/builds/ammo.js'
 
-controls = scene = camera = renderer = null
+mesh = controls = scene = camera = renderer = null
 
 initScene = ->
   renderer = new THREE.WebGLRenderer({ antialias: true })
   renderer.setSize( window.innerWidth, window.innerHeight )
   renderer.shadowMapEnabled = true
   renderer.shadowMapSoft = true
+  renderer.setClearColor 0xaaaaaa
   document.body.appendChild( renderer.domElement )
   scene = new Physijs.Scene { reportsize: 50, fixedTimeStep: 1 / 60 }
   scene.setGravity(new THREE.Vector3( 0, -90, 0 ))
-  scene.addEventListener 'update', ->
-    scene.simulate( undefined, 2 )
+  # scene.addEventListener 'update', ->
+  #   scene.simulate( undefined, 2 )
+  #   console.log wheel.mesh.rotation
 
   camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 1000 )
   camera.position.set( 60, 50, 60 )
@@ -87,7 +89,7 @@ initScene = ->
       @updatePlane()
 
     updateGrid: ->
-      line_material = new THREE.LineBasicMaterial( { color: 0x222222 } )
+      line_material = new THREE.LineBasicMaterial( { color: 0x000000 } )
       line_geometry = new THREE.Geometry()
       for i in [0..@lines]
         line_geometry.vertices.push(
@@ -150,7 +152,7 @@ initScene = ->
 
     stop: ->
       if @normal.y != 0
-        @constraint.disableAngularMotor( 3 )
+        @constraint.disableAngularMotor( 1 )
       else if @normal.z != 0
         @constraint.disableAngularMotor( 2 )
       else
@@ -175,28 +177,42 @@ initScene = ->
       )
       mesh.receiveShadow = true
       mesh.position.copy @position
-      localNormal = mesh.worldToLocal(@normal).normalize()
-      mesh.translateOnAxis(localNormal, @thickness() )
+      console.log 'before', mesh.matrix.toArray()
+      # localNormal = mesh.worldToLocal(@normal).normalize()
+      # mesh.updateMatrix()
+      # mesh.translateOnAxis(@normal, @thickness()*3 )
+      # mesh.updateMatrix()
       # mesh.lookAt(localNormal.clone().add(mesh.position))
+      # mesh.rotation.z = Math.PI/2
+      # mesh.updateMatrix()
 
-      if @normal.y != 0
-        sign = @sign(@normal.y)
-        axis = new THREE.Vector3(0, 1, 0)
-      else if @normal.z != 0
-        sign = @sign(@normal.z)
-        axis = new THREE.Vector3(1, 0, 0)
-      else
-        sign = @sign(@normal.x)
-        axis = new THREE.Vector3(0, 0, 1)
-      mesh.rotateOnAxis(axis, sign*Math.PI/2.0)
-      mesh.updateMatrix()
+
+      # if @normal.y == -1
+      #   axis = new THREE.Vector3(1, 0, 0)
+      #   mesh.rotateOnAxis(axis, Math.PI)
+      # else if @normal.z == 1
+      #   axis = new THREE.Vector3(1, 0, 0)
+      #   mesh.rotateOnAxis(axis, Math.PI/2.0)
+      # else if @normal.z == -1
+      #   axis = new THREE.Vector3(1, 0, 0)
+      #   mesh.rotateOnAxis(axis, -Math.PI/2.0)
+      # else if @normal.x == 1
+      #   axis = new THREE.Vector3(0, 0, 1)
+      #   mesh.rotateOnAxis(axis, -Math.PI/2.0)
+      # else if @normal.x == -1
+      #   axis = new THREE.Vector3(0, 0, 1)
+      #   mesh.rotateOnAxis(axis, Math.PI/2.0)
+      # mesh.updateMatrix()
+      console.log 'normal', @normal
+      console.log 'after', mesh.matrix.toArray()
+      console.log 'rotation', mesh.rotation
       mesh
 
     addToScene: (scene) ->
       scene.add @mesh
 
     setupConstraints: (scene) ->
-      @constraint = new Physijs.DOFConstraint(@mesh, @parent, @mesh.position)
+      @constraint = new Physijs.DOFConstraint(@mesh, @mesh.position)
       scene.addConstraint @constraint
       @constraint.setAngularLowerLimit({ x: 0, y: 0, z: 0 })
       @constraint.setAngularUpperLimit({ x: 0, y: 0, z: 0 })
@@ -251,12 +267,17 @@ initScene = ->
     randomPointOnFace(face)
 
 
+  # points = [
+  #   [ new THREE.Vector3(5, 0, -5), new THREE.Vector3(0, 0, -1) ],
+  #   [ new THREE.Vector3(-5, 0, -5), new THREE.Vector3(0, 0, -1) ],
+  #   [ new THREE.Vector3(5, 0, 5), new THREE.Vector3(0, 0, 1) ],
+  #   [ new THREE.Vector3(-5, 0, 5), new THREE.Vector3(0, 0, 1) ],
+  # ]
   points = [
-    [ new THREE.Vector3(5, 0, -5), new THREE.Vector3(0, 0, -1) ],
-    [ new THREE.Vector3(-5, 0, -5), new THREE.Vector3(0, 0, -1) ],
-    [ new THREE.Vector3(5, 0, 5), new THREE.Vector3(0, 0, 1) ],
-    [ new THREE.Vector3(-5, 0, 5), new THREE.Vector3(0, 0, 1) ],
+    [ new THREE.Vector3(5, 0, 0), new THREE.Vector3(1, 0, 0) ],
+    [ new THREE.Vector3(-5, 0, 0), new THREE.Vector3(-1, 0, 0) ],
   ]
+  genes = [0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5]
   class Car
     lineMaterial: new THREE.LineBasicMaterial({color: 0xffffff})
     constructor: (options) ->
@@ -266,9 +287,9 @@ initScene = ->
       @wheels = []
       @lines = []
 
-      for n in [1..4]
-        [position, normal] = randomPointOnMesh(@body.mesh)
-        # [position, normal] = points[n-1]
+      for n in [1..2]
+        # [position, normal] = randomPointOnMesh(@body.mesh)
+        [position, normal] = points[n-1]
         @lines.push @createLine(position, normal)
         position = position.clone().add(@position)
         @wheels.push new Wheel(@genes, n, @body.mesh, position, normal)
@@ -300,19 +321,37 @@ initScene = ->
   grid = new Grid(step: 5)
   grid.addToScene(scene)
 
-  car =  new Car(genes: Gene.random(7), position: new THREE.Vector3(0, 20, 0))
-  car.addToScene scene
-  car.start()
+  # car =  new Car(genes: Gene.random(7), position: new THREE.Vector3(0, 20, 0))
+  # car =  new Car(genes: genes, position: new THREE.Vector3(0, 20, 0))
+  # car.addToScene scene
+  # car.start()
   # car.stop()
 
+  # wheel = new Wheel([0.5,0.5, 0.5,0.5], 0, scene, new THREE.Vector3(0,10,0), new THREE.Vector3(0,0,1))
 
+  material = Physijs.createMaterial(
+    new THREE.MeshLambertMaterial({ map: THREE.ImageUtils.loadTexture( 'images/checker.gif' ) }),
+      .8, .5)
 
-  requestAnimationFrame( render )
-  scene.simulate()
+  wheel_geometry = new THREE.CylinderGeometry(5, 5, 2, 16 )
+  mesh = new Physijs.CylinderMesh(
+    wheel_geometry,
+    material,
+    16)
+  mesh.position.set(0, 10, 0)
+  scene.add(mesh)
+  constraint = new Physijs.DOFConstraint(mesh, mesh.position)
+  scene.addConstraint(constraint)
+  constraint.configureAngularMotor(1, 1, 0, -5, 2000)
+  constraint.enableAngularMotor(1)
+
+  requestAnimationFrame(render)
 
 render = ->
   controls.update()
   requestAnimationFrame( render )
+  scene.simulate( undefined, 2 )
+  console.log mesh.rotation.toArray()
   renderer.render( scene, camera)
 
 window.onload = initScene
