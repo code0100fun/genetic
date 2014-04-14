@@ -1,5 +1,3 @@
-Physijs.scripts.worker = '../bower_components/physijs/physijs_worker.js'
-Physijs.scripts.ammo = '../ammo.js/builds/ammo.js'
 
 mesh = controls = scene = camera = renderer = null
 
@@ -10,11 +8,10 @@ initScene = ->
   renderer.shadowMapSoft = true
   renderer.setClearColor 0xaaaaaa
   document.body.appendChild( renderer.domElement )
-  scene = new Physijs.Scene { reportsize: 50, fixedTimeStep: 1 / 60 }
-  scene.setGravity(new THREE.Vector3( 0, -90, 0 ))
-  # scene.addEventListener 'update', ->
-  #   scene.simulate( undefined, 2 )
-  #   console.log wheel.mesh.rotation
+
+  scene = new CANNON.World()
+  scene.gravity.set(0, -90, 0)
+  scene.broadphase = new CANNON.NaiveBroadphase()
 
   camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 1000 )
   camera.position.set( 60, 50, 60 )
