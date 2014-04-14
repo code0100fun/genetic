@@ -1,0 +1,25 @@
+{
+  "name": "genetic",
+  "version": "0.0.0",
+  "description": "",
+  "main": "gulpfile.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Chase McCarthy",
+  "license": "MIT",
+  "dependencies": {
+    "gulp": "~3.6.0",
+    "three": "~0.66.2",
+    "express": "~4.0.0",
+    "gulp-util": "~2.2.14",
+    "gulp-haml": "0.0.8",
+    "gulp-coffee": "~1.4.1",
+    "gulp-livereload": "~1.2.0",
+    "gulp-watch": "~0.5.4",
+    "underscore": "~1.6.0"
+  }
+}
